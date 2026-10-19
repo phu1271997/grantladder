@@ -3,8 +3,8 @@
 **A multi-tranche grant escrow that releases each milestone only after GenLayer validators fetch the grantee's published evidence page on-chain and independently judge that it genuinely substantiates that milestone.**
 
 - Network: **GenLayer StudioNet** (hosted GenLayer Studio) — status is *Preview*.
-- Live contract: `0x45a9b44f101718CBE9D5F5778e5f05540Bc963C4`
-- Explorer: https://explorer-studio.genlayer.com/address/0x45a9b44f101718CBE9D5F5778e5f05540Bc963C4
+- Live contract: `0xedc595B92c2CE334A45Eb28CfA85Afee74008e03`
+- Explorer: https://explorer-studio.genlayer.com/address/0xedc595B92c2CE334A45Eb28CfA85Afee74008e03
 - Live app: see the project's Vercel deployment (URL in the repo's Deployments).
 
 ## Why this needs GenLayer

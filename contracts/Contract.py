@@ -44,17 +44,22 @@ def _url_in_host(url, host):
 def _fetch_evidence(url, allowed_host):
     if not _url_in_host(url, allowed_host):
         raise ValueError("HOST_NOT_ALLOWED")
-    response = gl.nondet.web.render(url, mode="text")
-    status = int(getattr(response, "status", 200) or 200)
-    body = getattr(response, "text", None)
-    if body is None:
-        body = getattr(response, "body", "")
-        if isinstance(body, (bytes, bytearray)):
-            body = bytes(body).decode("utf-8", "replace")
-    text = str(body)
-    if status != 200 or not text or len(text) > 120000:
+    # gl.nondet.web.render returns the rendered text directly (a str), not a response object.
+    rendered = gl.nondet.web.render(url, mode="text")
+    if isinstance(rendered, (bytes, bytearray)):
+        text = bytes(rendered).decode("utf-8", "replace")
+    elif isinstance(rendered, str):
+        text = rendered
+    else:
+        body = getattr(rendered, "text", None)
+        if body is None:
+            body = getattr(rendered, "body", "")
+            if isinstance(body, (bytes, bytearray)):
+                body = bytes(body).decode("utf-8", "replace")
+        text = str(body)
+    if not text or len(text) > 120000:
         raise ValueError("EVIDENCE_UNAVAILABLE")
-    return {"url": url, "status": status, "content_sha256": _digest(text), "excerpt": text[:6000]}
+    return {"url": url, "status": 200, "content_sha256": _digest(text), "excerpt": text[:6000]}
 
 def _judge(snapshot, criterion):
     prompt = (
