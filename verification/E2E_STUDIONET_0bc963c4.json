@@ -1,0 +1,263 @@
+{
+  "schema": "grantladder-e2e-v1",
+  "network": "studionet",
+  "contract": "0x45a9b44f101718CBE9D5F5778e5f05540Bc963C4",
+  "roles": {
+    "funder": "0xFdc45874126A0580d9A9d034F2AA20d9bdad8235",
+    "grantee": "0xCd8bE5b63AAb48E65AD9c2f64a9768Cbc923Df81",
+    "deployer_used": false
+  },
+  "host": "github.com",
+  "transactions": [
+    {
+      "label": "create grant",
+      "actor": "0xFdc45874126A0580d9A9d034F2AA20d9bdad8235",
+      "function": "create_grant",
+      "args": [
+        "{\"title\":\"Open-source project milestone grant\",\"grantee\":\"0xcd8be5b63aab48e65ad9c2f64a9768cbc923df81\",\"allowed_host\":\"github.com\",\"tranches\":[{\"criteria\":\"A public GitHub repository page that shows the repository name and a README or description identifying the project.\",\"bps\":3000},{\"criteria\":\"A public GitHub account profile page that shows the account name and its public repositories.\",\"bps\":7000}],\"budget\":3000000000000000,\"review_window\":180,\"expires\":1792426694}"
+      ],
+      "value": "0",
+      "hash": "0x0bda7c5bdfe8a807c206360f98b13de0ab9f7f427eade135dddd1badd863ff18",
+      "after": {
+        "clock": "2026-10-19T13:18:58.341527Z",
+        "count": 1,
+        "schema": "grantladder-v1"
+      },
+      "result": 0,
+      "verified": true
+    },
+    {
+      "label": "fund grant",
+      "actor": "0xFdc45874126A0580d9A9d034F2AA20d9bdad8235",
+      "function": "fund",
+      "args": [
+        "0"
+      ],
+      "value": "3000000000000000",
+      "hash": "0x067164ec705b93462a036cc78b969fd639efef3200133e4abd445c5c5093d94c",
+      "after": {
+        "cursor": 0,
+        "funder": "0xfdc45874126a0580d9a9d034f2aa20d9bdad8235",
+        "funder_refunded": 0,
+        "grantee_claimed": 0,
+        "held": 3000000000000000,
+        "id": 0,
+        "phase": "ACTIVE",
+        "refund_pending": 0,
+        "terms": {
+          "allowed_host": "github.com",
+          "budget": 3000000000000000,
+          "expires": 1792426694,
+          "grantee": "0xcd8be5b63aab48e65ad9c2f64a9768cbc923df81",
+          "review_window": 180,
+          "title": "Open-source project milestone grant",
+          "tranches": [
+            {
+              "bps": 3000,
+              "criteria": "A public GitHub repository page that shows the repository name and a README or description identifying the project."
+            },
+            {
+              "bps": 7000,
+              "criteria": "A public GitHub account profile page that shows the account name and its public repositories."
+            }
+          ]
+        },
+        "terms_digest": "49929dc7d61303f137ecee0b636c602e0a076de39f8a68142a6c121531dc497b",
+        "tranches": [
+          {
+            "amount": 900000000000000,
+            "bps": 3000,
+            "claimable_at": 0,
+            "criteria": "A public GitHub repository page that shows the repository name and a README or description identifying the project.",
+            "dispute": null,
+            "evidence": null,
+            "released_at": 0,
+            "status": "PENDING",
+            "verdict": null
+          },
+          {
+            "amount": 2100000000000000,
+            "bps": 7000,
+            "claimable_at": 0,
+            "criteria": "A public GitHub account profile page that shows the account name and its public repositories.",
+            "dispute": null,
+            "evidence": null,
+            "released_at": 0,
+            "status": "PENDING",
+            "verdict": null
+          }
+        ]
+      },
+      "result": "ACTIVE",
+      "verified": true
+    },
+    {
+      "label": "rung0 submit",
+      "actor": "0xCd8bE5b63AAb48E65AD9c2f64a9768Cbc923Df81",
+      "function": "submit_evidence",
+      "args": [
+        "0",
+        "0",
+        "https://github.com/octocat/Hello-World"
+      ],
+      "value": "0",
+      "hash": "0x0f5bfa03ed7373034c6ae483c36c14c766a17f74cc2d6f12b5d9ea4346307eb6",
+      "result": "SUBMITTED",
+      "verified": true
+    },
+    {
+      "label": "rung0 assess",
+      "actor": "0xFdc45874126A0580d9A9d034F2AA20d9bdad8235",
+      "function": "assess",
+      "args": [
+        "0",
+        "0"
+      ],
+      "value": "0",
+      "hash": "0x707b81119a535ca615048d0e5612db96af7a2921a6479cd9628ff917bb0ef288",
+      "after": {
+        "cursor": 0,
+        "funder": "0xfdc45874126a0580d9a9d034f2aa20d9bdad8235",
+        "funder_refunded": 0,
+        "grantee_claimed": 0,
+        "held": 3000000000000000,
+        "id": 0,
+        "phase": "ACTIVE",
+        "refund_pending": 0,
+        "terms": {
+          "allowed_host": "github.com",
+          "budget": 3000000000000000,
+          "expires": 1792426694,
+          "grantee": "0xcd8be5b63aab48e65ad9c2f64a9768cbc923df81",
+          "review_window": 180,
+          "title": "Open-source project milestone grant",
+          "tranches": [
+            {
+              "bps": 3000,
+              "criteria": "A public GitHub repository page that shows the repository name and a README or description identifying the project."
+            },
+            {
+              "bps": 7000,
+              "criteria": "A public GitHub account profile page that shows the account name and its public repositories."
+            }
+          ]
+        },
+        "terms_digest": "49929dc7d61303f137ecee0b636c602e0a076de39f8a68142a6c121531dc497b",
+        "tranches": [
+          {
+            "amount": 900000000000000,
+            "bps": 3000,
+            "claimable_at": 0,
+            "criteria": "A public GitHub repository page that shows the repository name and a README or description identifying the project.",
+            "dispute": null,
+            "evidence": {
+              "at": 1792415989,
+              "url": "https://github.com/octocat/Hello-World"
+            },
+            "released_at": 0,
+            "status": "SUBMITTED",
+            "verdict": {
+              "assessed_at": 1792416100,
+              "result": {
+                "confidence": 0,
+                "outcome": "EVIDENCE_UNAVAILABLE"
+              },
+              "snapshot": null
+            }
+          },
+          {
+            "amount": 2100000000000000,
+            "bps": 7000,
+            "claimable_at": 0,
+            "criteria": "A public GitHub account profile page that shows the account name and its public repositories.",
+            "dispute": null,
+            "evidence": null,
+            "released_at": 0,
+            "status": "PENDING",
+            "verdict": null
+          }
+        ]
+      }
+    }
+  ],
+  "checks": [
+    {
+      "name": "deployed schema is grantladder-v1",
+      "pass": true,
+      "detail": {
+        "clock": "2026-10-19T13:18:13.105454Z",
+        "count": 0,
+        "schema": "grantladder-v1"
+      }
+    },
+    {
+      "name": "create grant: SUCCESS",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "name": "fund grant: SUCCESS",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "name": "fund grant: result ACTIVE",
+      "pass": true,
+      "detail": {
+        "actual": "ACTIVE"
+      }
+    },
+    {
+      "name": "deployed schema is grantladder-v1",
+      "pass": true,
+      "detail": {
+        "clock": "2026-10-19T13:21:35.994808Z",
+        "count": 1,
+        "schema": "grantladder-v1"
+      }
+    },
+    {
+      "name": "rung0 submit: SUCCESS",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "name": "rung0 submit: result SUBMITTED",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "name": "rung0 assess: SUCCESS",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "name": "rung0 assess: result RELEASE",
+      "pass": false,
+      "detail": {
+        "actual": "EVIDENCE_UNAVAILABLE"
+      }
+    }
+  ],
+  "started_at": "2026-10-19T13:18:12.129Z",
+  "terms": {
+    "title": "Open-source project milestone grant",
+    "grantee": "0xcd8be5b63aab48e65ad9c2f64a9768cbc923df81",
+    "allowed_host": "github.com",
+    "tranches": [
+      {
+        "criteria": "A public GitHub repository page that shows the repository name and a README or description identifying the project.",
+        "bps": 3000
+      },
+      {
+        "criteria": "A public GitHub account profile page that shows the account name and its public repositories.",
+        "bps": 7000
+      }
+    ],
+    "budget": 3000000000000000,
+    "review_window": 180,
+    "expires": 1792426694
+  },
+  "gid": 0,
+  "error": "Error: CHECK FAILED: rung0 assess: result RELEASE"
+}
