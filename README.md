@@ -80,3 +80,14 @@ npm run dev
 ```
 
 MetaMask signs; `createClient({ chain: studionet, account: userAddress })` — no secret ships in the bundle. On connect the app switches/adds the GenLayer Studio network. Assess and re-assess transactions show an explicit "validators are fetching the evidence page and voting" waiting state, and each rung renders its verdict, confidence, evidence link, and status.
+
+### Routes
+
+The UI is split across dedicated routes (react-router), not one page:
+
+- `/` — overview + how it judges
+- `/grants/:id` — the funding ladder: per-rung submit / assess / dispute / resolve / claim
+- `/create` — define and seal a new grant ladder
+- `/explorer` — every grant on the contract, read live from StudioNet, with completed ladders, released rungs, and amounts claimed
+
+Each page has explicit loading / not-found / error states. `npm run e2e` drives the production build in headless Chrome against live StudioNet state (home, Explorer, ladder detail, not-found, create — 6 checks).
