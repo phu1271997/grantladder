@@ -91,7 +91,7 @@ def do_assess(e, gid, idx, outcome, confidence=90, url=None):
 def test_header_and_consensus_shape():
     source = FILE.read_text()
     assert source.splitlines()[:2] == [
-        "# v0.2.17",
+        "# v0.2.18",
         '# { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }',
     ]
     assert "gl.eq_principle.strict_eq" not in source
@@ -191,7 +191,11 @@ def test_dispute_then_resolve_claws_back(env):
                                   "_judge": lambda *_: {"outcome": "REJECT", "confidence": 10}}):
         assert call(env, env[4], "resolve", gid, 0) == "REJECT"
     v = env[1].get_grant(gid)
-    assert v["tranches"][0]["status"] == "REJECTED" and v["tranches"][0]["amount"] == 0 and v["held"] == BUDGET
+    # clawback routes to the funder's refund; held keeps the still-undistributed remainder
+    assert v["tranches"][0]["status"] == "REJECTED" and v["tranches"][0]["amount"] == 0
+    assert v["held"] == BUDGET - 300 and v["refund_pending"] == 300
+    assert call(env, env[2], "claim", gid) == "CLAIMED"
+    assert env[1].get_grant(gid)["funder_refunded"] == 300
 
 
 def test_claim_blocked_until_claimable_then_pays(env):
@@ -220,3 +224,53 @@ def test_expiry_recovers_unreleased_to_funder(env):
     v = env[1].get_grant(gid)
     assert v["grantee_claimed"] == 300
     assert v["grantee_claimed"] + v["funder_refunded"] == BUDGET
+
+
+def test_only_funder_can_dispute(env):
+    gid = active(env)
+    do_assess(env, gid, 0, "RELEASE", url="https://github.com/acme/r0")
+    with pytest.raises(Exception):  # a stranger cannot dispute
+        call(env, env[4], "dispute", gid, 0, "c" * 64)
+    with pytest.raises(Exception):  # nor can the grantee
+        call(env, env[3], "dispute", gid, 0, "c" * 64)
+    assert env[1].get_grant(gid)["tranches"][0]["status"] == "RELEASED"
+    # only the funder succeeds
+    assert call(env, env[2], "dispute", gid, 0, "c" * 64) == "DISPUTED"
+
+
+def test_valid_dispute_resolvable_across_expiry(env):
+    gid = active(env)
+    do_assess(env, gid, 0, "RELEASE", url="https://github.com/acme/r0")  # 300 to grantee, 700 held
+    assert call(env, env[2], "dispute", gid, 0, "c" * 64) == "DISPUTED"
+    env[0].warp("2026-10-15T02:00:01Z")  # past expires — resolution must still work
+    with patch.dict(mod_of(env), {"_fetch_evidence": lambda *_: snap(),
+                                  "_judge": lambda *_: {"outcome": "REJECT", "confidence": 10}}):
+        assert call(env, env[4], "resolve", gid, 0) == "REJECT"
+    v = env[1].get_grant(gid)
+    assert v["tranches"][0]["status"] == "REJECTED" and v["tranches"][0]["amount"] == 0
+    assert v["refund_pending"] == 300
+    assert call(env, env[2], "claim", gid) == "CLAIMED"  # funder gets the clawback back
+    assert env[1].get_grant(gid)["funder_refunded"] == 300
+
+
+def test_transient_reassessment_never_permanently_rejects(env):
+    gid = active(env)
+    do_assess(env, gid, 0, "RELEASE", url="https://github.com/acme/r0")
+    assert call(env, env[2], "dispute", gid, 0, "c" * 64) == "DISPUTED"
+    # REVISE during reassessment: ambiguous, must NOT reject/zero the tranche
+    with patch.dict(mod_of(env), {"_fetch_evidence": lambda *_: snap(),
+                                  "_judge": lambda *_: {"outcome": "REVISE", "confidence": 40}}):
+        assert call(env, env[4], "resolve", gid, 0) == "REVISE"
+    v = env[1].get_grant(gid)
+    assert v["tranches"][0]["status"] == "DISPUTED" and v["tranches"][0]["amount"] == 300
+    assert v["refund_pending"] == 0
+    # EVIDENCE_UNAVAILABLE during reassessment: transient, must NOT reject/zero either
+    with patch.dict(mod_of(env), {"_fetch_evidence": lambda *_: (_ for _ in ()).throw(ValueError("down"))}):
+        assert call(env, env[4], "resolve", gid, 0) == "EVIDENCE_UNAVAILABLE"
+    v = env[1].get_grant(gid)
+    assert v["tranches"][0]["status"] == "DISPUTED" and v["tranches"][0]["amount"] == 300
+    # a later definitive outcome still resolves normally
+    with patch.dict(mod_of(env), {"_fetch_evidence": lambda *_: snap(),
+                                  "_judge": lambda *_: {"outcome": "RELEASE", "confidence": 95}}):
+        assert call(env, env[4], "resolve", gid, 0) == "RELEASE"
+    assert env[1].get_grant(gid)["tranches"][0]["status"] == "RELEASED"
