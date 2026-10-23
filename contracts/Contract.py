@@ -1,4 +1,4 @@
-# v0.2.17
+# v0.2.18
 # { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
 from genlayer import *
 import json, hashlib
@@ -259,6 +259,9 @@ class Contract(gl.Contract):
     @gl.public.write
     def dispute(self, gid: int, tranche_index: int, reason_digest: str) -> str:
         v = self._get(gid)
+        # Only the funder who staked the budget may dispute a release; a stranger cannot.
+        if self._sender() != v["funder"]:
+            raise gl.vm.UserError("FUNDER_ONLY")
         if tranche_index < 0 or tranche_index >= len(v["tranches"]):
             raise gl.vm.UserError("UNKNOWN_TRANCHE")
         tr = v["tranches"][tranche_index]
@@ -281,15 +284,22 @@ class Contract(gl.Contract):
         tr = v["tranches"][tranche_index]
         if tr["status"] != "DISPUTED":
             raise gl.vm.UserError("NOT_DISPUTED")
-        if self._now() >= v["terms"]["expires"]:
-            raise gl.vm.UserError("RESOLUTION_EXPIRED")
+        # A dispute can only be filed in-window (while RELEASED and before claimable_at),
+        # so it represents a valid challenge that MUST stay resolvable even past `expires`.
+        # No expiry gate here: otherwise a dispute filed near the boundary would lock the
+        # tranche forever with no way to release to the grantee or refund the funder.
         outcome = self._run_tranche(v, tranche_index)
         if outcome == "RELEASE":
-            tr["status"] = "RELEASED"  # upheld; claimable_at unchanged
-        else:
+            tr["status"] = "RELEASED"  # upheld; claimable_at unchanged, grantee may claim
+        elif outcome == "REJECT":
+            # Only a DEFINITIVE reject claws back. Route to the funder's refund (correct
+            # whether or not the grant has since been closed by recover_expired).
             tr["status"] = "REJECTED"
-            v["held"] += tr["amount"]
+            v["refund_pending"] += tr["amount"]
             tr["amount"] = 0
+        # REVISE / EVIDENCE_UNAVAILABLE are ambiguous or transient (e.g. the page failed to
+        # render): keep the tranche DISPUTED and retryable rather than permanently rejecting
+        # and zeroing it on a reassessment that could not actually substantiate a reject.
         self._put(gid, v)
         return outcome
 
