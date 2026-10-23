@@ -3,8 +3,8 @@
 **A multi-tranche grant escrow that releases each milestone only after GenLayer validators fetch the grantee's published evidence page on-chain and independently judge that it genuinely substantiates that milestone.**
 
 - Network: **GenLayer StudioNet** (hosted GenLayer Studio) — status is *Preview*.
-- Live contract: `0xedc595B92c2CE334A45Eb28CfA85Afee74008e03`
-- Explorer: https://explorer-studio.genlayer.com/address/0xedc595B92c2CE334A45Eb28CfA85Afee74008e03
+- Live contract: `0xAfa46288bdbB6b09E2B1A5247aE4d5CeEA17D189`
+- Explorer: https://explorer-studio.genlayer.com/address/0xAfa46288bdbB6b09E2B1A5247aE4d5CeEA17D189
 - Live app: see the project's Vercel deployment (URL in the repo's Deployments).
 
 ## Why this needs GenLayer
@@ -25,7 +25,7 @@ DRAFT → ACTIVE ─ per tranche: PENDING → SUBMITTED → RELEASED ─┬→ D
 past expiry → CLOSED → funder recovers the unreleased remainder
 ```
 
-`RELEASE`, `REVISE`, `REJECT`, `EVIDENCE_UNAVAILABLE` are bounded verdicts. **Contract code maps them to money**, not the model. A `RELEASE` returned with confidence below 70 is deterministically downgraded to `REVISE`. A released tranche is only *claimable* after its dispute window (`released_at + review_window`), during which the funder may `dispute` and force a validator re-assessment that can claw the credit back.
+`RELEASE`, `REVISE`, `REJECT`, `EVIDENCE_UNAVAILABLE` are bounded verdicts. **Contract code maps them to money**, not the model. A `RELEASE` returned with confidence below 70 is deterministically downgraded to `REVISE`. A released tranche is only *claimable* after its dispute window (`released_at + review_window`), during which **only the funder** may `dispute` and force a validator re-assessment. A validly-filed dispute stays resolvable even past `expires` (the window already closed before expiry), so funds are never stranded. On re-assessment, only a **definitive `REJECT`** claws the credit back to the funder's refund; a `REVISE` or `EVIDENCE_UNAVAILABLE` is ambiguous or transient and keeps the tranche `DISPUTED` and retryable rather than permanently rejecting and zeroing it.
 
 ## Consensus design (Axis 2)
 
@@ -55,7 +55,7 @@ scripts/live.mjs        # funder+grantee end-to-end / seeding run
 ```bash
 npm install --legacy-peer-deps
 python3 -m pip install genlayer-test
-python3 -m pytest tests -q        # 12 Direct-Mode tests
+python3 -m pytest tests -q        # 15 Direct-Mode tests
 npm run test                      # frontend unit tests
 npm run build                     # typecheck + production build
 ```
